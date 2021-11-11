@@ -1,0 +1,58 @@
+{% extends '_blank.html' %}
+{% block rawcontent %}
+  <div class="container">
+    <div class="row align-items-center py-3">
+      <div class="col-12 col-md-6">
+        <h1 class="font-weight-bold">
+          <span class="pr-2">
+            <a href="{% url 'qux_url_shortener:list' %}" class="btn p-0"
+               data-toggle="tooltip" data-placement="bottom" title="Short URLs">
+            <i class="fas fa-2x fa-link"
+               style="-webkit-transform: rotate(45deg); transform: rotate(45deg);"></i>
+          </a></span>
+          <span class="text-nowrap">Links</span>
+        </h1>
+      </div>
+      
+    </div>
+
+    {% if object_list %}
+    {% csrf_token %}
+    <table class="table table-hover table-borderless table-striped">
+      <thead>
+      <tr>
+        <th scope="col">Original URL</th>
+        <th scope="col">Short URL</th>
+        <th scope="col">No of Visits</th>
+        <th scope="col">Domain</th>
+        <th scope="col">Expiry Date</th>
+        <th scope="col" class="d-none d-md-table-cell">Date Created</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for post in object_list %}
+      <tr class="row_{{post.id}}">
+        <td class="align-middle text-wrap text-truncate">{{ post.original_url }}</td>
+        <td class="align-middle text-nowrap text-truncate">{{ post.short_url }}</td>
+        <td class="align-middle text-nowrap text-truncate">{{ post.num_visits }}</td>
+        <td class="align-middle text-nowrap text-truncate">{{ post.domain }}</td>
+        <td class="align-middle text-wrap text-truncate">{% if post.expiry_date %}{{ post.expiry_date }}{% endif %}</td>
+        <td class="align-middle d-none d-md-table-cell">{{ post.dtm_created }}</td>
+    
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="lead">NO links yet.</p>
+    {% endif %}
+
+    {% comment %} <div class="row mt-4">
+      <div class="col-12 col-md text-md-right mt-4 my-md-0">
+        <a href="{% url 'shorturl:new' %}" class="btn btn-block btn-primary text-white py-2">
+          <span>Create New Link</span>
+        </a>
+      </div>
+    </div> {% endcomment %}
+  </div>
+{% endblock rawcontent %}

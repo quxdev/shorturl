@@ -1,0 +1,129 @@
+{% extends '_blank.html' %}
+{% block customstyle %}
+  <style>
+    #section_content {
+      flex-shrink: 0;
+      display: block;
+      padding: 4rem 2rem;
+    }
+    #content {
+      width: 100%;
+      max-width: 1080px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 1rem;
+    }
+    .input-group-lg > .form-control:not(textarea) {
+      height: calc(1.5em + 2rem + 2px);
+    }
+  </style>
+{% endblock %}
+{% block rawcontent %}
+<section id="section_content" class="bg-dark">
+  <div id="content">
+    <form id="shorturl_form" method="post">
+    {% csrf_token %}
+    {% if not user.is_anonymous %}
+    <div class="row">
+      <div class="col-12 mb-5">
+        <div class="input-group input-group-lg">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Custom URL</span>
+          </div>
+          <label for="custom_url"></label>
+          <input id="custom_url" type="text" class="form-control" placeholder="Enter Custom URL to shorten">
+        </div>
+      </div>
+      {% endif %}
+      <div class="col-12">
+        <div class="input-group input-group-lg">
+          <div class="input-group-prepend">
+            <span class="input-group-text text-center" style="width: 9rem;">URL</span>
+          </div>
+          <label for="original_url"></label>
+          <input id="original_url" type="text" class="form-control" placeholder="Enter URL to shorten">
+        </div>
+      </div>
+      <div class="col-12"><div class="pt-4 pt-md-5">
+        <button type="submit" class="btn btn-lg btn-block btn-outline-light"
+                style="padding-top: 13px; padding-bottom: 13px; font-size: 1.5rem;">
+          Shorten
+        </button>
+      </div></div>
+    </div>
+    </form>
+
+    <div id="div-result" class="form-container d-none text-white pt-4 pt-md-5">
+      <div class="row rounded-lg m-0 p-3 bg-success" style="font-size: 1.25rem;">
+        <div id="result-original-url" class="col-12 col-md-8 text-truncate">
+        </div>
+        <div class="col-12 col-md-4 float-md-right pt-4 pt-md-0 text-right">
+          <code id="result-short-url" class="text-white"></code>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+
+{% block customjs %}
+  <script>
+      $("#shorturl_form").submit(function(e){
+          e.preventDefault();
+
+          let csrftoken = $( "input[name=csrfmiddlewaretoken]" ).val();
+          function csrfSafeMethod(method) {
+              // these HTTP methods do not require CSRF protection
+              // return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+          }
+
+          $.ajaxSetup({
+              beforeSend: function (xhr, settings) {
+                  // if not safe, set csrftoken
+                  if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                      xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                  }
+              }
+          });
+
+          let originalurl = $( "#original_url" ).val();
+          let customurl = $( "#custom_url" ).val();
+
+          let formData = new FormData(this);
+          formData.append('original_url', originalurl);
+          formData.append('custom_url', customurl);
+          console.log(formData);
+          $.ajax({
+              method: "POST",
+              data: formData,
+              dataType: 'json',
+              url: "{% url 'qux_url_shortener_api:new' %}?format=json",
+              processData: false,
+              cache: false,
+              contentType: false,
+              success: function(result) {
+                  console.log(result);
+
+                  let html;
+                  if (result.hasOwnProperty('short_url')) {
+                      // html = "<p>Original URL: " + originalurl + "</p>";
+                      // html += "<p>Short URL: " + result['short_url'] + "</p>";
+                      $("#result-original-url").html(originalurl);
+                      $("#result-short-url").html(result['short_url']);
+                      $('#div-result').removeClass('d-none');
+                  } else if (result.hasOwnProperty('message')) {
+                      $("#result-original-url").html(result['message']);
+                      $("#result-short-url").html('');
+                      $('#div-result').removeClass('d-none');
+                  }
+              },
+              error: function(result) {
+                  console.log('error');
+                  console.log(result);
+              }
+          });
+      });
+  </script>
+{% endblock %}
