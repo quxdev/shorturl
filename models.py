@@ -34,6 +34,7 @@ class Link(CoreModel):
     num_visits = models.IntegerField(default=0)
     domain = models.CharField(max_length=64, default=settings.DEFAULT_DOMAIN)
     expiry_date = models.DateField(default=None, null=True, blank=True)
+    is_custom_url = models.BooleanField(default=False)
     # UTM fields for analytics
     utm_source = models.CharField(**CHAR256)
     utm_medium = models.CharField(**CHAR256)
@@ -101,14 +102,14 @@ class Link(CoreModel):
             domain=domain
         )
         linkobj = None
-        if shorturl:
+        if shorturl and shorturl !=  "undefined":
             if Link.objects.filter(short_url=shorturl).exists():
                 filterparams.update({'short_url': shorturl})
                 linkobj = Link.objects.filter(**filterparams).last()
                 if not linkobj:
                     return
                 else:
-                    filterparams.update({'short_url': shorturl})
+                    filterparams.update({'short_url': shorturl, 'is_custom_url': True})
         else: 
             linkobj = Link.objects.filter(**filterparams).last()
         if linkobj is None:

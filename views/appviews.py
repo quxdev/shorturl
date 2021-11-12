@@ -28,7 +28,7 @@ class OpenOriginalLink(View):
 
     @staticmethod
     def get(request, short_url):
-        
+
         original_url = Link.get_original_url(request, short_url)
 
         if original_url is None:
@@ -44,7 +44,7 @@ class LinkListView(ListView):
     paginate_by = 25
     permission_classes = (permissions.AllowAny,)
     fields = ['original_url', 'short_url', 'num_visits', 'domain', 'expiry_date', ]
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # context['canonical'] = reverse('shorturl:list')
@@ -65,5 +65,5 @@ class LinkCreateView(View):
     template_name = 'qux_url_shortener_create.html'
 
     def get(self, request):
-        context = {}       
+        context = {}
         return render(request, self.template_name, context)

@@ -38,23 +38,28 @@ class CreateShortLink(APIView):
         original_url = data.get('original_url', None)
         custom_url = data.get('custom_url', None)
         expiry_date = data.get('expiry_date', None)
-        domain = data.get('domain', None)
+        domain = request.get_host()
+        protocol = 'https://' if request.is_secure() else 'http://'
 
-        click_from = request.META.get('HTTP_REFERER', None)
-        is_valid_req = request.user.is_authenticated
+        domain = protocol + domain
 
-        if settings.DEBUG:
-            # is_valid_req = is_valid_req or '127.0.0.1' in click_from
-            is_valid_req = True
+        # Commented below lines so that unregistered user can also create short url
 
-        is_valid_req = is_valid_req or 'domain.io' in click_from
+        # click_from = request.META.get('HTTP_REFERER', None)
+        # is_valid_req = request.user.is_authenticated
 
-        if not is_valid_req:
-            return HttpResponse('Unauthorized', status=401)
+        # if settings.DEBUG:
+        #     is_valid_req = True
+
+        # is_valid_req = is_valid_req or 'domain.io' in click_from
+
+        # if not is_valid_req:
+        #     return HttpResponse('Unauthorized', status=401)
 
         json_data = {}
         if original_url:
-            link_obj = Link.create_short_link(original_url, custom_url, expiry_date, domain)
+            link_obj = Link.create_short_link(
+                original_url, custom_url, expiry_date, domain)
             if link_obj:
                 json_data["short_url"] = link_obj.get_short_url()
             else:
