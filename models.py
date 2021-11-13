@@ -23,6 +23,8 @@ dnb = dict(
     blank=True
 )
 
+DEFAULT_DOMAIN = getattr(settings, 'DEFAULT_DOMAIN', 'qux.dev')
+
 
 class Link(CoreModel):
     # Using this field is actually a Charfield but with a URL validator. AWESOME!
@@ -32,7 +34,7 @@ class Link(CoreModel):
         verbose_name='Short URL'
     )
     num_visits = models.IntegerField(default=0)
-    domain = models.CharField(max_length=64, default=settings.DEFAULT_DOMAIN)
+    domain = models.CharField(max_length=64, default=DEFAULT_DOMAIN)
     expiry_date = models.DateField(default=None, null=True, blank=True)
     is_custom_url = models.BooleanField(default=False)
     # UTM fields for analytics
@@ -44,10 +46,13 @@ class Link(CoreModel):
 
     def save(self, *args, **kwargs):
         # pk = self.pk
-        try:
-            super(self.__class__, self).save(*args, **kwargs)
-        except:
-            return 
+
+        # try:
+        #     super(self.__class__, self).save(*args, **kwargs)
+        # except:
+        #     return
+
+        super().save(*args, **kwargs)
 
         if self.short_url is None:
             self.short_url = self.__class__.generate_short_url()
@@ -56,7 +61,7 @@ class Link(CoreModel):
             if Link.objects.filter(short_url=self.short_url).exists():
                 return
             else:
-                result = self.save()          
+                result = self.save()
         return result
 
     def __str__(self):
@@ -102,7 +107,7 @@ class Link(CoreModel):
             domain=domain
         )
         linkobj = None
-        if shorturl and shorturl !=  "undefined":
+        if shorturl and shorturl != "undefined":
             if Link.objects.filter(short_url=shorturl).exists():
                 filterparams.update({'short_url': shorturl})
                 linkobj = Link.objects.filter(**filterparams).last()
@@ -110,15 +115,17 @@ class Link(CoreModel):
                     return
                 else:
                     filterparams.update({'short_url': shorturl, 'is_custom_url': True})
-        else: 
+        else:
             linkobj = Link.objects.filter(**filterparams).last()
         if linkobj is None:
             linkobj, _ = Link.objects.get_or_create(**filterparams)
 
             # We do this to extract and store utm params
-            params = dict(parse.parse_qsl(parse.urlsplit(original_url).query))
-            for key, value in params.items():
-                setattr(linkobj, key, value)
+            # https://stackoverflow.com/a/61192401/
+            # decode("ascii") eliminates byte type errors further down
+            params = parse.parse_qs(parse.urlsplit(original_url).query)
+            for k in params:
+                setattr(linkobj, str(k), params[k])
             linkobj.save()
 
         if expiry_date:
@@ -138,8 +145,8 @@ class Link(CoreModel):
         """
         dtmstamp = timezone.now().date()
         print(f"dtmstamp = {dtmstamp}")
-        linkobj = Link.objects.filter(short_url=slug)\
-            .filter(Q(expiry_date__isnull=True) | Q(expiry_date__gte=dtmstamp))\
+        linkobj = Link.objects.filter(short_url=slug) \
+            .filter(Q(expiry_date__isnull=True) | Q(expiry_date__gte=dtmstamp)) \
             .last()
         TrackingVisit.create(request, linkobj)
 
@@ -207,8 +214,8 @@ class LinkVisit(CoreModel):
     def store_data(request, track_obj=None):
         metadata = ['HTTP_ACCEPT_LANGUAGE', 'HTTP_USER_AGENT', 'HTTP_REFERER', 'REMOTE_ADDR',
                     'REMOTE_PORT', 'SERVER_NAME', 'SERVER_PORT', 'HTTP_HOST', 'QUERY_STRING']
-        
-        [setattr(track_obj, k.lower(), request.META.get(k, None))
+
+        [setattr(track_obj, k.lower(), request.META.get())
          for k in metadata]
 
         track_obj.get_params.update(request.GET.dict())

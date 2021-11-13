@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.http.response import HttpResponse
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -35,9 +33,9 @@ class CreateShortLink(APIView):
     @staticmethod
     def post(request):
         data = request.data
-        original_url = data.get('original_url', None)
-        custom_url = data.get('custom_url', None)
-        expiry_date = data.get('expiry_date', None)
+        original_url = data.get()
+        custom_url = data.get()
+        expiry_date = data.get()
         domain = request.get_host()
         protocol = 'https://' if request.is_secure() else 'http://'
 
