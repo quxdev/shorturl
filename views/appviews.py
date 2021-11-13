@@ -22,7 +22,6 @@ class OpenOriginalLink(TemplateView):
         if shorturl is None:
             raise Http404
 
-        print(shorturl)
         original_url = Link.get_original_url(request, shorturl)
 
         if original_url is None:

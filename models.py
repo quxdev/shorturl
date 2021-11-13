@@ -215,7 +215,7 @@ class LinkVisit(CoreModel):
         metadata = ['HTTP_ACCEPT_LANGUAGE', 'HTTP_USER_AGENT', 'HTTP_REFERER', 'REMOTE_ADDR',
                     'REMOTE_PORT', 'SERVER_NAME', 'SERVER_PORT', 'HTTP_HOST', 'QUERY_STRING']
 
-        [setattr(track_obj, k.lower(), request.META.get())
+        [setattr(track_obj, k.lower(), request.META.get(k, None))
          for k in metadata]
 
         track_obj.get_params.update(request.GET.dict())
