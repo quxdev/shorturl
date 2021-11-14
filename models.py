@@ -63,7 +63,7 @@ class Link(CoreModel):
         return '%s : %s' % (self.id, self.original_url)
 
     def get_short_url(self):
-        return self.domain + self.short_url
+        return self.domain + "/" + self.short_url
 
     @staticmethod
     def generate_short_url():
