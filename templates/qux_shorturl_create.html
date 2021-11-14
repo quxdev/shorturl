@@ -101,14 +101,13 @@
               method: "POST",
               data: formData,
               dataType: 'json',
-              url: "{% url 'qux_url_shortener_api:new' %}?format=json",
+              url: "{% url 'qux_shorturl_api:new' %}?format=json",
               processData: false,
               cache: false,
               contentType: false,
               success: function(result) {
                   console.log(result);
 
-                  let html;
                   if (result.hasOwnProperty('short_url')) {
                       // html = "<p>Original URL: " + originalurl + "</p>";
                       // html += "<p>Short URL: " + result['short_url'] + "</p>";
