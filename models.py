@@ -23,6 +23,8 @@ dnb = dict(
     blank=True
 )
 
+DEFAULT_DOMAIN = getattr(settings, 'DEFAULT_DOMAIN', 'qux.dev')
+
 
 class Link(CoreModel):
     # Using this field is actually a Charfield but with a URL validator. AWESOME!
@@ -32,7 +34,7 @@ class Link(CoreModel):
         verbose_name='Short URL'
     )
     num_visits = models.IntegerField(default=0)
-    domain = models.CharField(max_length=64, default=settings.DEFAULT_DOMAIN)
+    domain = models.CharField(max_length=64, default=DEFAULT_DOMAIN)
     expiry_date = models.DateField(default=None, null=True, blank=True)
     # UTM fields for analytics
     utm_source = models.CharField(**CHAR256)
